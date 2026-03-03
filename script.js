@@ -1,15 +1,16 @@
-const sendButton = document.getElementById('sendButton');
-const messageInput = document.getElementById('messageInput');
-const messages = document.getElementById('messages');
+class ChatMessage extends HTMLElement {
+  connectedCallback() {
+    const role = this.getAttribute('role') || 'ai';
 
-sendButton.addEventListener('click', () => {
-  const text = messageInput.value.trim();
-  if (!text) return;
+    const base =
+      'max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm';
 
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
-  messageElement.textContent = text;
+    const aiStyle = 'bg-white border text-gray-900';
+    const userStyle = 'bg-blue-600 text-white';
 
-  messages.appendChild(messageElement);
-  messageInput.value = '';
-});
+    this.className = `${base} ${role === 'user' ? userStyle : aiStyle}`;
+  }
+}
+
+customElements.define('chat-message', ChatMessage);
+
