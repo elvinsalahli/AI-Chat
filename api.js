@@ -5,7 +5,7 @@ export async function streamChatCompletion(messages, onChunk) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer YOUR_OPENROUTER_API_KEY'
+        Authorization: 'Bearer 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'
       },
       body: JSON.stringify({
         model: 'openai/gpt-4o-mini',
