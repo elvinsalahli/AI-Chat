@@ -19,6 +19,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "typescript-eslint": "^8.56.1"
   },
   "lint-staged": {
@@ -29,5 +30,10 @@
     "*.{html,css}": [
       "prettier --check"
     ]
+  },
+  "dependencies": {
+    "@prisma/client": "^7.7.0",
+    "@tanstack/react-query": "^5.97.0",
+    "prisma": "^7.7.0"
   }
 }
