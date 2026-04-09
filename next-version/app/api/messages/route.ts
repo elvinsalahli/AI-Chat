@@ -1,31 +1,16 @@
-import { prisma } from "@/lib/prisma";
+import { getMessages, createMessage } from "../../../lib/db";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
   const conversationId = Number(searchParams.get("conversationId"));
 
-  const messages = await prisma.message.findMany({
-    where: {
-      conversationId,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
+  const messages = await getMessages(conversationId);
   return Response.json(messages);
 }
 
-export async function POST(request: Request) {
-  const body = await request.json();
+export async function POST(req: Request) {
+  const { conversationId, role, content } = await req.json();
 
-  const message = await prisma.message.create({
-    data: {
-      content: body.content,
-      role: body.role,
-      conversationId: body.conversationId,
-    },
-  });
-
+  const message = await createMessage(conversationId, role, content);
   return Response.json(message);
 }

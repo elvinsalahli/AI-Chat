@@ -1,23 +1,13 @@
-import { prisma } from "@/lib/prisma";
+import { getConversations, createConversation } from "../../../lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
-  const conversations = await prisma.conversation.findMany({
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
-  return Response.json(conversations);
+  const data = await getConversations();
+  return Response.json(data);
 }
 
-export async function POST(request: Request) {
-  const body = await request.json();
-
-  const conversation = await prisma.conversation.create({
-    data: {
-      title: body.title || "New Chat",
-    },
-  });
-
-  return Response.json(conversation);
+export async function POST() {
+  const convo = await createConversation();
+  revalidatePath("/");
+  return Response.json(convo);
 }
