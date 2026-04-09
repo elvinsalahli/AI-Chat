@@ -1,97 +1,155 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import Sidebar from "./components/sidebar/Sidebar";
 import ChatPanel from "./components/chat/ChatPanel";
-import { getConversations } from "./lib/conversations";
-import { getMessagesByConversationId } from "./lib/messages";
-
-type Conversation = {
-  id: number;
-  title: string;
-};
-
-type Message = {
-  id: number;
-  conversationId: number;
-  role: "user" | "assistant";
-  content: string;
-};
+import {
+  Conversation,
+  createConversation,
+  deleteConversation,
+  getConversations,
+} from "./lib/conversations";
+import {
+  Message,
+  createMessage,
+  getMessagesByConversationId,
+} from "./lib/messages";
 
 export default function HomePage() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeId, setActiveId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [activeId, setActiveId] = useState<number | null>(1);
+
+  const { data: conversations = [] } = useQuery<Conversation[]>({
+    queryKey: ["conversations"],
+    queryFn: getConversations,
+  });
 
   useEffect(() => {
-    getConversations().then((data) => {
-      setConversations(data);
-      if (data.length > 0) {
-        setActiveId(data[0].id);
+    if (activeId === null && conversations.length > 0) {
+      setActiveId(conversations[0].id);
+      router.replace(`/conversations/${conversations[0].id}`);
+    }
+  }, [conversations, activeId, router]);
+
+  const { data: messages = [] } = useQuery<Message[]>({
+    queryKey: ["messages", activeId],
+    queryFn: () => getMessagesByConversationId(activeId as number),
+    enabled: activeId !== null,
+  });
+
+  const createConversationMutation = useMutation({
+    mutationFn: () => createConversation("New Chat"),
+    onSuccess: (conversation) => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      setActiveId(conversation.id);
+      router.push(`/conversations/${conversation.id}`);
+    },
+  });
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: (id: number) => deleteConversation(id),
+    onSuccess: (_data, deletedId) => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.removeQueries({ queryKey: ["messages", deletedId] });
+
+      if (activeId === deletedId) {
+        setActiveId(null);
+        router.push("/");
       }
-    });
-  }, []);
+    },
+  });
 
-  useEffect(() => {
-    if (activeId === null) return;
+  const sendMessageMutation = useMutation({
+    mutationFn: async (text: string) => {
+      if (activeId === null) {
+        throw new Error("No active conversation");
+      }
 
-    getMessagesByConversationId(activeId).then((data) => {
-      setMessages(data);
-    });
-  }, [activeId]);
+      await createMessage({
+        conversationId: activeId,
+        role: "user",
+        content: text,
+      });
 
-  async function handleSendMessage(text: string) {
-    if (!text.trim() || activeId === null) return;
-
-    const userMessage: Message = {
-      id: Date.now(),
-      conversationId: activeId,
-      role: "user",
-      content: text,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/llm", {
+      const llmResponse = await fetch("/api/llm", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map((message) => ({
-            role: message.role,
-            content: message.content,
-          })),
+          messages: [...messages, { role: "user", content: text }].map(
+            (message) => ({
+              role: message.role,
+              content: message.content,
+            })
+          ),
         }),
       });
 
-      const data = await response.json();
+      if (!llmResponse.ok) {
+        throw new Error("Failed to get AI reply");
+      }
 
-      const assistantMessage: Message = {
-        id: Date.now() + 1,
+      const llmData = await llmResponse.json();
+      const assistantContent =
+        llmData.choices?.[0]?.message?.content || "No response received.";
+
+      await createMessage({
         conversationId: activeId,
         role: "assistant",
-        content: data.choices?.[0]?.message?.content || "No response received.",
-      };
+        content: assistantContent,
+      });
 
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error(error);
+      return true;
+    },
+    onMutate: async (text) => {
+      if (activeId === null) return;
 
-      const assistantMessage: Message = {
-        id: Date.now() + 1,
+      await queryClient.cancelQueries({ queryKey: ["messages", activeId] });
+
+      const previousMessages =
+        queryClient.getQueryData<Message[]>(["messages", activeId]) || [];
+
+      const optimisticUserMessage: Message = {
+        id: Date.now(),
         conversationId: activeId,
-        role: "assistant",
-        content: "Something went wrong while getting the AI reply.",
+        role: "user",
+        content: text,
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+      queryClient.setQueryData<Message[]>(
+        ["messages", activeId],
+        [...previousMessages, optimisticUserMessage]
+      );
+
+      return { previousMessages };
+    },
+    onError: (_error, _text, context) => {
+      if (activeId === null) return;
+
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ["messages", activeId],
+          context.previousMessages
+        );
+      }
+    },
+    onSuccess: () => {
+      if (activeId === null) return;
+      queryClient.invalidateQueries({ queryKey: ["messages", activeId] });
+    },
+  });
+
+  function handleSelectConversation(id: number) {
+    setActiveId(id);
+    router.push(`/conversations/${id}`);
   }
 
   return (
@@ -99,13 +157,17 @@ export default function HomePage() {
       <Sidebar
         conversations={conversations}
         activeId={activeId}
-        onSelect={setActiveId}
+        onSelect={handleSelectConversation}
+        onCreate={() => createConversationMutation.mutate()}
+        onDelete={(id) => deleteConversationMutation.mutate(id)}
+        isCreating={createConversationMutation.isPending}
+        deletingId={deleteConversationMutation.isPending ? activeId : null}
       />
 
       <ChatPanel
         messages={messages}
-        onSendMessage={handleSendMessage}
-        isLoading={isLoading}
+        onSendMessage={(text) => sendMessageMutation.mutate(text)}
+        isLoading={sendMessageMutation.isPending}
       />
     </div>
   );
