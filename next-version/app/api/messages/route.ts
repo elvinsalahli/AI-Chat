@@ -1,10 +1,10 @@
-import { createMessage, getMessages } from "../../../lib/db";
+import { createMessage, getMessages } from '../../../lib/db';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const conversationId = Number(searchParams.get("conversationId"));
+  const conversationId = Number(searchParams.get('conversationId'));
 
   if (!conversationId) {
     return Response.json([]);

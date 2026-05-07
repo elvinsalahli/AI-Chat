@@ -1,6 +1,6 @@
-import Sidebar from "../../components/sidebar/Sidebar";
-import ChatPanel from "../../components/chat/ChatPanel";
-import { getMessages } from "../../../lib/db";
+import Sidebar from '../../components/sidebar/Sidebar';
+import ChatPanel from '../../components/chat/ChatPanel';
+import { getMessages } from '../../../lib/db';
 
 export default async function ConversationPage({
   params,
@@ -16,13 +16,13 @@ export default async function ConversationPage({
     <div className="h-screen flex bg-gray-100">
       <Sidebar activeId={id} />
       <ChatPanel
-  conversationId={id}
-  initialMessages={messages.map((m) => ({
-    id: String(m.id),
-    role: m.role as "user" | "assistant",
-    content: m.content,
-  }))}
-/>
+        conversationId={id}
+        initialMessages={messages.map((m) => ({
+          id: String(m.id),
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        }))}
+      />
     </div>
   );
 }

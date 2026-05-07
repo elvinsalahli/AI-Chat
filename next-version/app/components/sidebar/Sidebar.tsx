@@ -1,5 +1,5 @@
-import { getConversations } from "../../../lib/db";
-import SidebarClient from "./SidebarClient";
+import { getConversations } from '../../../lib/db';
+import SidebarClient from './SidebarClient';
 
 export default async function Sidebar({
   activeId,

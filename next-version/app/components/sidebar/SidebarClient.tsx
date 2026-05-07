@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useOptimistic, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useOptimistic, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Conversation = {
   id: number;
@@ -25,15 +25,15 @@ export default function SidebarClient({
     (
       state,
       action:
-        | { type: "add"; conversation: Conversation }
-        | { type: "remove"; id: number }
+        | { type: 'add'; conversation: Conversation }
+        | { type: 'remove'; id: number },
     ) => {
-      if (action.type === "add") {
+      if (action.type === 'add') {
         return [action.conversation, ...state];
       }
 
       return state.filter((conversation) => conversation.id !== action.id);
-    }
+    },
   );
 
   function handleCreate() {
@@ -41,20 +41,20 @@ export default function SidebarClient({
       const tempId = -Date.now();
 
       setOptimisticConversations({
-        type: "add",
+        type: 'add',
         conversation: {
           id: tempId,
-          title: "New Chat",
+          title: 'New Chat',
         },
       });
 
       try {
-        const response = await fetch("/api/conversations", {
-          method: "POST",
+        const response = await fetch('/api/conversations', {
+          method: 'POST',
         });
 
         if (!response.ok) {
-          throw new Error("Failed to create conversation");
+          throw new Error('Failed to create conversation');
         }
 
         const conversation = await response.json();
@@ -70,7 +70,7 @@ export default function SidebarClient({
   function handleDelete(id: number) {
     startTransition(async () => {
       setOptimisticConversations({
-        type: "remove",
+        type: 'remove',
         id,
       });
 
@@ -81,15 +81,15 @@ export default function SidebarClient({
 
       try {
         const response = await fetch(`/api/conversations/${id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         });
 
         if (!response.ok) {
-          throw new Error("Failed to delete conversation");
+          throw new Error('Failed to delete conversation');
         }
 
         if (activeId === id) {
-          router.push("/");
+          router.push('/');
         }
 
         router.refresh();
@@ -118,8 +118,8 @@ export default function SidebarClient({
             key={conversation.id}
             className={`flex items-center justify-between px-3 py-2 rounded-lg ${
               activeId === conversation.id
-                ? "bg-blue-50 border border-blue-200 font-medium"
-                : "hover:bg-gray-100"
+                ? 'bg-blue-50 border border-blue-200 font-medium'
+                : 'hover:bg-gray-100'
             }`}
           >
             <button

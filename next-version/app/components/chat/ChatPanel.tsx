@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { useState } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 
 type InitialMessage = {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
 };
 
@@ -19,17 +19,17 @@ export default function ChatPanel({
   conversationId,
   initialMessages,
 }: ChatPanelProps) {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
-      api: "/api/chat",
+      api: '/api/chat',
       body: { conversationId },
     }),
     messages: initialMessages.map((message) => ({
       id: message.id,
       role: message.role,
-      parts: [{ type: "text" as const, text: message.content }],
+      parts: [{ type: 'text' as const, text: message.content }],
     })),
   });
 
@@ -42,7 +42,7 @@ export default function ChatPanel({
       text: input,
     });
 
-    setInput("");
+    setInput('');
   }
 
   return (
@@ -52,22 +52,26 @@ export default function ChatPanel({
           <div
             key={message.id}
             className={
-              message.role === "user" ? "flex justify-end" : "flex justify-start"
+              message.role === 'user'
+                ? 'flex justify-end'
+                : 'flex justify-start'
             }
           >
             <div
               className={
-                message.role === "user"
-                  ? "max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm bg-blue-600 text-white"
-                  : "max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm bg-white border text-gray-900"
+                message.role === 'user'
+                  ? 'max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm bg-blue-600 text-white'
+                  : 'max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm bg-white border text-gray-900'
               }
             >
               {message.parts
                 .filter(
                   (
-                    part: (typeof message.parts)[number]
-                  ): part is Extract<(typeof message.parts)[number], { type: "text" }> =>
-                    part.type === "text"
+                    part: (typeof message.parts)[number],
+                  ): part is Extract<
+                    (typeof message.parts)[number],
+                    { type: 'text' }
+                  > => part.type === 'text',
                 )
                 .map((part, index: number) => (
                   <div key={index}>{part.text}</div>
@@ -76,14 +80,13 @@ export default function ChatPanel({
           </div>
         ))}
 
-        {(status === "submitted" || status === "streaming") && (
+        {(status === 'submitted' || status === 'streaming') && (
           <div className="flex justify-start">
             <div className="max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm bg-white border text-gray-500">
               AI is typing...
             </div>
           </div>
         )}
-
       </section>
 
       <footer className="border-t bg-white p-4">
@@ -99,7 +102,7 @@ export default function ChatPanel({
           <button
             className="rounded-lg bg-blue-600 text-white px-4 font-medium disabled:opacity-60"
             type="submit"
-            disabled={status === "submitted" || status === "streaming"}
+            disabled={status === 'submitted' || status === 'streaming'}
           >
             Send
           </button>

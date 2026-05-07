@@ -1,11 +1,11 @@
-import { prisma } from "./prisma";
+import { prisma } from './prisma';
 
 // Conversations
 
 export async function getConversations() {
   return prisma.conversation.findMany({
     orderBy: {
-      createdAt: "asc",
+      createdAt: 'asc',
     },
   });
 }
@@ -13,7 +13,7 @@ export async function getConversations() {
 export async function createConversation() {
   return prisma.conversation.create({
     data: {
-      title: "New Chat",
+      title: 'New Chat',
     },
   });
 }
@@ -34,7 +34,7 @@ export async function getMessages(conversationId: number) {
       conversationId,
     },
     orderBy: {
-      createdAt: "asc",
+      createdAt: 'asc',
     },
   });
 }
@@ -42,7 +42,7 @@ export async function getMessages(conversationId: number) {
 export async function createMessage(
   conversationId: number,
   role: string,
-  content: string
+  content: string,
 ) {
   return prisma.message.create({
     data: {
