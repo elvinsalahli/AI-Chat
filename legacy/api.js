@@ -5,10 +5,10 @@ export async function streamChatCompletion(messages, onChunk) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer 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'
+        Authorization: 'Bearer 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'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
+        model: 'liquid/lfm-2.5-1.2b-instruct:free',
         messages,
         stream: true
       })
