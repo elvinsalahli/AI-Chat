@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Conversation {
@@ -18,6 +19,7 @@ model Message {
   content        String
   role           String
   createdAt      DateTime     @default(now())
+
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   conversationId Int
 }

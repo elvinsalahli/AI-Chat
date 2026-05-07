@@ -36,10 +36,10 @@ export default function SidebarClient({
     }
   );
 
-  async function handleCreate() {
-    const tempId = Date.now();
-
+  function handleCreate() {
     startTransition(async () => {
+      const tempId = -Date.now();
+
       setOptimisticConversations({
         type: "add",
         conversation: {
@@ -58,6 +58,7 @@ export default function SidebarClient({
         }
 
         const conversation = await response.json();
+
         router.push(`/conversations/${conversation.id}`);
         router.refresh();
       } catch {
@@ -66,12 +67,17 @@ export default function SidebarClient({
     });
   }
 
-  async function handleDelete(id: number) {
+  function handleDelete(id: number) {
     startTransition(async () => {
       setOptimisticConversations({
         type: "remove",
         id,
       });
+
+      if (id < 0) {
+        router.refresh();
+        return;
+      }
 
       try {
         const response = await fetch(`/api/conversations/${id}`, {
@@ -118,8 +124,9 @@ export default function SidebarClient({
           >
             <button
               type="button"
+              disabled={conversation.id < 0}
               onClick={() => router.push(`/conversations/${conversation.id}`)}
-              className="flex-1 text-left truncate"
+              className="flex-1 text-left truncate disabled:opacity-60"
             >
               {conversation.title}
             </button>

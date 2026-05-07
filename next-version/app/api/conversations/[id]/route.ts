@@ -1,11 +1,17 @@
 import { deleteConversation } from "../../../../lib/db";
 import { revalidatePath } from "next/cache";
 
+export const dynamic = "force-dynamic";
+
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  await deleteConversation(Number(params.id));
+  const { id } = await context.params;
+
+  await deleteConversation(Number(id));
+
   revalidatePath("/");
+
   return Response.json({ success: true });
 }

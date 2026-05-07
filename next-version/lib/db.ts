@@ -1,9 +1,12 @@
 import { prisma } from "./prisma";
 
 // Conversations
+
 export async function getConversations() {
   return prisma.conversation.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 }
 
@@ -17,15 +20,22 @@ export async function createConversation() {
 
 export async function deleteConversation(id: number) {
   return prisma.conversation.delete({
-    where: { id },
+    where: {
+      id,
+    },
   });
 }
 
 // Messages
+
 export async function getMessages(conversationId: number) {
   return prisma.message.findMany({
-    where: { conversationId },
-    orderBy: { createdAt: "asc" },
+    where: {
+      conversationId,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 }
 
